@@ -1,4 +1,4 @@
-**** ML-Pipeline
+** ML-Pipeline
 
 Пайплайн для запуска оптимизации гиперпараметров и/или обучения Бустинг(XGBoost, LightGBM,CatBoost) и Torch моделей. 
 
