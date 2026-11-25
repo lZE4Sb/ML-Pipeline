@@ -1,0 +1,120 @@
+###########  ENVIRONMENT ##########
+
+general: 
+  seed           : 42
+  debug          : False
+
+######### DATA PROCESSING ############
+
+paths: 
+  train_csv : ./data/train.csv
+  test_csv  : ./data/test.csv
+  output_dir: ./outputs
+
+data: 
+  id_col              : 'Id'
+  test_size           : 0.2
+  split_strategy      : kfold # kfold | train_val
+  stratify            : true
+  n_splits            : 5
+  val_size            : 0.2 # for train_val split
+  pipeline            : linear     # linear | boosting
+  target_col          : SalePrice
+  log_transform_target: True
+
+######### MODEL CHOOSING ############
+
+model_type : torch       # boosting | torch
+model_class: torch         # lgbm | xgb | cat | torch
+task_type  : regression  # regression | binary | multiclass 
+
+######### BOOSTING PARAMS ############
+
+xgb: 
+  params: 
+    n_estimators         : 1000
+    learning_rate        : 0.05
+    random_state         : 42
+    max_depth            : 6
+    subsample            : 1.0
+    early_stopping_rounds: 30
+    eval_metric          : 'rmse' # 'rmse' || 'logloss' | 'auc' || 'mlogloss' | 'merror'
+  fit_params: 
+    verbose              : 0
+
+lgbm: 
+  params: 
+    n_estimators       : 1000
+    learning_rate      : 0.05
+    random_state       : 42
+    num_leaves         : 31
+    bagging_freq       : 1
+  callbacks:
+    es_rounds          : 50
+    log_evaluation     : 0
+  fit_params: 
+    eval_metric        : 'rmse' # 'rmse' | 'l2' (MSE) | 'l1' (MAE) | 'mape' || 'binary_logloss' | 'auc' | 'average_precision' || 'multi_logloss' | 'multi_error'
+    categorical_feature: 'auto'
+
+cat: 
+  params: 
+    iterations           : 1000   
+    learning_rate        : 0.05
+    random_seed          : 42            
+    depth: 6          
+    l2_leaf_reg          : 3.0
+    eval_metric          : 'RMSE' # 'RMSE' | 'MAE' | 'R2' || 'Logloss' | 'AUC' | 'CrossEntropy' | 'Accuracy' | 'Precision' | 'Recall' | 'F1' | 'PRAUC' || 'MultiClass' | 'Logloss'
+    nan_mode             : 'Min'    
+    boosting_type        : 'Plain'       # 'Ordered' | 'Plain'
+    max_ctr_complexity   : 1        # number of combination of cat features, 1 - no combinations
+    one_hot_max_size     : 25         # number of values in cat features to going to one-hot, no CTR computation
+    allow_writing_files  : False   # don't write catboost_info on disc
+    thread_count         : -1       
+  fit_params: 
+    early_stopping_rounds: 30  
+    verbose              : 0
+
+
+######### TORCH PARAMS ########
+
+nn: 
+  data: 
+    batch_size  : 32
+    num_workers : 0
+  model: 
+    input_dim   : 79
+    hidden_dim  : 64
+    num_layers  : 3
+    dropout     : 0
+    activation  : 'relu' # relu | tanh
+    output_dim  : 1
+  training: 
+    optimizer         : 'adam'      # adam | sgd | rmsprop
+    scheduler         : 'cosine'   # plateau | cosine | none
+    scheduler_factor  : 0.5     
+    scheduler_patience: 5     
+    min_lr            : 1.0e-6 
+    loss              : 'rmse' # mse | mae | rmse | crossentropy | bce
+    lr                : 0.001
+    weight_decay      : 0.0001
+    momentum          : 0.9
+    epochs            : 1500
+    patience          : 25
+    device            : 'cpu'
+    verbose           : 9999 # 9999 to stop notifications
+
+######### OPTIMISATION ############
+
+optuna: 
+  enabled   : True
+  n_trials  : 5
+  metric    : rmsle   # rmsle | rmse | mae | r2 | wape
+  timeout   : null      # sec, null = no limit
+  save_study: true
+
+######### RESULTS ############
+result:
+  num_iterations_strategy: median # mean | median
+  mode:
+    study: True # optuna study
+    train: True # train full model
